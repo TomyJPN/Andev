@@ -7,7 +7,7 @@ public class GameDefine
     /// <summary>
     /// 選択肢タイプ
     /// </summary>
-    public enum selectType
+    public enum PlayerSelectType
     {
         None,
         /// <summary>賭ける</summary>

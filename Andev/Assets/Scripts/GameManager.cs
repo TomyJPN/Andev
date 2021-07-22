@@ -100,7 +100,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// プレイヤーの選択コールバック
     /// </summary>
-    private void PlayerSelectCallBack(GameDefine.selectType select, Player player)
+    private void PlayerSelectCallBack(GameDefine.PlayerSelectType select, Player player)
     {
         if (_currentGameStatus != GameStatus.WaitingPlayerSelect ||
            _currentWaitingPlayerId != player.PlayerId)
@@ -109,7 +109,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if(select == GameDefine.selectType.Pass)
+        if(select == GameDefine.PlayerSelectType.Pass)
         {
             _passCount++;
         }
@@ -120,7 +120,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// ターンの切り替え
     /// </summary>
-    private IEnumerator ChangeTurn(GameDefine.selectType select, Player player)
+    private IEnumerator ChangeTurn(GameDefine.PlayerSelectType select, Player player)
     {
         Player opponentPlayer = GetOpponentPlayer(player.PlayerId);
         Player.StateType nextState = GameStateUtility.GetOpponentPlayerNextState(player.CurrentStateEnum, select);

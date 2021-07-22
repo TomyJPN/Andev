@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
-using selectType = GameDefine.selectType;
+using PlayerSelectType = GameDefine.PlayerSelectType;
 
 public class Player : MonoBehaviour
 {
@@ -32,7 +32,7 @@ public class Player : MonoBehaviour
     private int _haveMoney;
 
     /// <summary>選択肢のコールバック</summary>
-    private Action<selectType, Player> _selectCallBack;
+    private Action<PlayerSelectType, Player> _selectCallBack;
 
     /// <summary>現在のState</summary>
     public PlayerStateBase CurrentState => _currentState;
@@ -52,7 +52,7 @@ public class Player : MonoBehaviour
         string name,
         int initMoneyCount,
         bool isFirst,
-        Action<selectType, Player> SelectCallBack)
+        Action<PlayerSelectType, Player> SelectCallBack)
     {
         _playerId = id;
         _name = name;
@@ -108,7 +108,7 @@ public class Player : MonoBehaviour
         _currentState.OnEnter(this, _currentState);
     }
 
-    private void Select(selectType select)
+    private void Select(PlayerSelectType select)
     {
         _selectCallBack.Invoke(select, this);
         ChangeState(StateType.Waiting);
@@ -134,11 +134,11 @@ public class Player : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.B))
             {
-                owner.Select(selectType.Bet);
+                owner.Select(PlayerSelectType.Bet);
             }
             else if (Input.GetKeyDown(KeyCode.P))
             {
-                owner.Select(selectType.Pass);
+                owner.Select(PlayerSelectType.Pass);
             }
         }
     }
@@ -158,15 +158,15 @@ public class Player : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.C))
             {
-                owner.Select(selectType.Call);
+                owner.Select(PlayerSelectType.Call);
             }
             else if (Input.GetKeyDown(KeyCode.F))
             {
-                owner.Select(selectType.Fold);
+                owner.Select(PlayerSelectType.Fold);
             }
             else if (Input.GetKeyDown(KeyCode.R))
             {
-                owner.Select(selectType.Raise);
+                owner.Select(PlayerSelectType.Raise);
             }
         }
     }
@@ -186,11 +186,11 @@ public class Player : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.C))
             {
-                owner.Select(selectType.Call);
+                owner.Select(PlayerSelectType.Call);
             }
             else if (Input.GetKeyDown(KeyCode.F))
             {
-                owner.Select(selectType.Fold);
+                owner.Select(PlayerSelectType.Fold);
             }
         }
     }

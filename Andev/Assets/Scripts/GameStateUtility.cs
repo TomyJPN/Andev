@@ -34,17 +34,17 @@ public static class GameStateUtility
     /// <summary>
     /// 次の相手の行動を取得する
     /// </summary>
-    public static Player.StateType GetOpponentPlayerNextState(Player.StateType currentState, GameDefine.selectType select)
+    public static Player.StateType GetOpponentPlayerNextState(Player.StateType currentState, GameDefine.PlayerSelectType select)
     {
 
         if (currentState == Player.StateType.Select1)
         {
             switch (select)
             {
-                case GameDefine.selectType.Bet:
+                case GameDefine.PlayerSelectType.Bet:
                     return Player.StateType.Select2;
 
-                case GameDefine.selectType.Pass:
+                case GameDefine.PlayerSelectType.Pass:
                     return Player.StateType.Select1;
             }
         }
@@ -53,12 +53,12 @@ public static class GameStateUtility
         {
             switch (select)
             {
-                case GameDefine.selectType.Call:
-                case GameDefine.selectType.Fold:
+                case GameDefine.PlayerSelectType.Call:
+                case GameDefine.PlayerSelectType.Fold:
                     // TODO:勝負待ちステータス作る
                     return Player.StateType.Waiting;
 
-                case GameDefine.selectType.Raise:
+                case GameDefine.PlayerSelectType.Raise:
                     return Player.StateType.Select3;
             }
         }
@@ -74,23 +74,23 @@ public static class GameStateUtility
     /// <summary>
     /// プレイヤー行動後の次の状態を取得する
     /// </summary>
-    public static AfterPlayerActionType GetAfterPlayerAction(Player.StateType currentState, GameDefine.selectType select, int passCount)
+    public static AfterPlayerActionType GetAfterPlayerAction(Player.StateType currentState, GameDefine.PlayerSelectType select, int passCount)
     {
         switch (select)
         {
-            case GameDefine.selectType.Bet:
+            case GameDefine.PlayerSelectType.Bet:
                 return AfterPlayerActionType.PlayerSelect;
 
-            case GameDefine.selectType.Call:
+            case GameDefine.PlayerSelectType.Call:
                 return AfterPlayerActionType.BattleEffect;
 
-            case GameDefine.selectType.Fold:
+            case GameDefine.PlayerSelectType.Fold:
                 return AfterPlayerActionType.Judgement;
 
-            case GameDefine.selectType.Raise:
+            case GameDefine.PlayerSelectType.Raise:
                 return AfterPlayerActionType.PlayerSelect;
 
-            case GameDefine.selectType.Pass:
+            case GameDefine.PlayerSelectType.Pass:
                 return passCount == 2
                     ? AfterPlayerActionType.BattleEffect
                     : AfterPlayerActionType.PlayerSelect;
