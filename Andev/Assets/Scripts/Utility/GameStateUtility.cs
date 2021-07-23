@@ -34,8 +34,13 @@ public static class GameStateUtility
     /// <summary>
     /// 次の相手の行動を取得する
     /// </summary>
-    public static Player.StateType GetOpponentPlayerNextState(Player.StateType currentState, GameDefine.PlayerSelectType select)
+    public static Player.StateType GetOpponentPlayerNextState(Player.StateType currentState, GameDefine.PlayerSelectType select, int passCount)
     {
+        if(passCount == 2)
+        {
+            return Player.StateType.Waiting;
+        }
+
 
         if (currentState == Player.StateType.Select1)
         {
