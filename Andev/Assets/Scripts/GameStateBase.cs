@@ -10,7 +10,7 @@ public abstract class PlayerStateBase
     /// </summary>
     public virtual void OnEnter(Player owner, PlayerStateBase prevState)
     {
-        Debug.Log($"【state変更】{owner.PlayerName}が{owner.CurrentStateName}を開始");
+        Debug.Log($"【state変更】{owner.PlayerName}：{owner.CurrentStateName}");
     }
 
     /// <summary>

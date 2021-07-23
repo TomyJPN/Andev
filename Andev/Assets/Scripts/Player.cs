@@ -2,6 +2,7 @@
 using System;
 
 using PlayerSelectType = GameDefine.PlayerSelectType;
+using System.Collections.Generic;
 
 public class Player : MonoBehaviour
 {
@@ -18,18 +19,18 @@ public class Player : MonoBehaviour
     private static readonly StateSelect1 stateSelect1 = new StateSelect1();
     private static readonly StateSelect2 stateSelect2 = new StateSelect2();
     private static readonly StateSelect3 stateSelect3 = new StateSelect3();
+    
+    /// <summary>所持金</summary>
+    [SerializeField]
+    private Money _haveMoney;
 
     /// <summary>プレイヤーID</summary>
-    public uint PlayerId => _playerId;
-    private uint _playerId;
+    public int PlayerId => _playerId;
+    private int _playerId;
 
     /// <summary>キャラ名</summary>
     public string PlayerName => _name;
     private string _name;
-
-    /// <summary>所持金</summary>
-    public int HaveMoney => _haveMoney;
-    private int _haveMoney;
 
     /// <summary>選択肢のコールバック</summary>
     private Action<PlayerSelectType, Player> _selectCallBack;
@@ -48,7 +49,7 @@ public class Player : MonoBehaviour
     /// セットアップ
     /// </summary>
     public void Setup(
-        uint id,
+        int id,
         string name,
         int initMoneyCount,
         bool isFirst,
@@ -56,7 +57,7 @@ public class Player : MonoBehaviour
     {
         _playerId = id;
         _name = name;
-        _haveMoney = initMoneyCount;
+        _haveMoney.Init(initMoneyCount);
         _selectCallBack = SelectCallBack;
 
         if (isFirst)
@@ -108,10 +109,45 @@ public class Player : MonoBehaviour
         _currentState.OnEnter(this, _currentState);
     }
 
+    /// <summary>
+    /// 選択肢ダイアログの表示
+    /// </summary>
+    private void ShowSelectDialog(List<PlayerSelectType> selectList)
+    {
+        List<UIManager.ButtonRegisterData> buttonData = new List<UIManager.ButtonRegisterData>();
+
+        foreach(var select in selectList)
+        {
+            buttonData.Add(new UIManager.ButtonRegisterData
+            {
+                ButtonText = Wording.LoadWord(select.ToString()),
+                ButtonCallback = () => Select(select)
+            });
+        }
+
+        UIManager.Instance.ShowSelectDialog(buttonData);
+    }
+
     private void Select(PlayerSelectType select)
     {
         _selectCallBack.Invoke(select, this);
         ChangeState(StateType.Waiting);
+    }
+
+    /// <summary>
+    /// 指定した量を支払えるか
+    /// </summary>
+    public bool IsPayable(int payCount)
+    {
+        return _haveMoney.IsPayable(payCount);
+    }
+
+    /// <summary>
+    /// 掛け金を支払う
+    /// </summary>
+    public int PayMoney(int count)
+    {
+        return _haveMoney.PayMoney(count);
     }
 
     public class StateWaiting : PlayerStateBase
@@ -128,18 +164,13 @@ public class Player : MonoBehaviour
         {
             base.OnEnter(owner, prevState);
             Debug.Log(owner.PlayerName + "選択: ベットB or パスP", Debug.Green);
-        }
 
-        public override void OnUpdate(Player owner)
-        {
-            if (Input.GetKeyDown(KeyCode.B))
+            List<PlayerSelectType> selectList = new List<PlayerSelectType>
             {
-                owner.Select(PlayerSelectType.Bet);
-            }
-            else if (Input.GetKeyDown(KeyCode.P))
-            {
-                owner.Select(PlayerSelectType.Pass);
-            }
+                PlayerSelectType.Bet,
+                PlayerSelectType.Pass
+            };
+            owner.ShowSelectDialog(selectList);
         }
     }
 
@@ -152,22 +183,14 @@ public class Player : MonoBehaviour
         {
             base.OnEnter(owner, prevState);
             Debug.Log(owner.PlayerName + "選択: コールC or フォールドF or レイズR", Debug.Green);
-        }
 
-        public override void OnUpdate(Player owner)
-        {
-            if (Input.GetKeyDown(KeyCode.C))
+            List<PlayerSelectType> selectList = new List<PlayerSelectType>
             {
-                owner.Select(PlayerSelectType.Call);
-            }
-            else if (Input.GetKeyDown(KeyCode.F))
-            {
-                owner.Select(PlayerSelectType.Fold);
-            }
-            else if (Input.GetKeyDown(KeyCode.R))
-            {
-                owner.Select(PlayerSelectType.Raise);
-            }
+                PlayerSelectType.Call,
+                PlayerSelectType.Fold,
+                PlayerSelectType.Raise
+            };
+            owner.ShowSelectDialog(selectList);
         }
     }
 
@@ -180,19 +203,13 @@ public class Player : MonoBehaviour
         {
             base.OnEnter(owner, prevState);
             Debug.Log(owner.PlayerName + "選択: コールC or フォールドF", Debug.Green);
-        }
 
-        public override void OnUpdate(Player owner)
-        {
-            if (Input.GetKeyDown(KeyCode.C))
+            List<PlayerSelectType> selectList = new List<PlayerSelectType>
             {
-                owner.Select(PlayerSelectType.Call);
-            }
-            else if (Input.GetKeyDown(KeyCode.F))
-            {
-                owner.Select(PlayerSelectType.Fold);
-            }
+                PlayerSelectType.Call,
+                PlayerSelectType.Fold,
+            };
+            owner.ShowSelectDialog(selectList);
         }
     }
-
 }
