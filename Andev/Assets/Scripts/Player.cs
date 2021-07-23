@@ -19,10 +19,6 @@ public class Player : MonoBehaviour
     private static readonly StateSelect1 stateSelect1 = new StateSelect1();
     private static readonly StateSelect2 stateSelect2 = new StateSelect2();
     private static readonly StateSelect3 stateSelect3 = new StateSelect3();
-    
-    /// <summary>所持金</summary>
-    [SerializeField]
-    private Money _haveMoney;
 
     /// <summary>プレイヤーID</summary>
     public int PlayerId => _playerId;
@@ -32,8 +28,12 @@ public class Player : MonoBehaviour
     public string PlayerName => _name;
     private string _name;
 
+    /// <summary>配置</summary>
+    public GameDefine.PositionType Position => _position;
+    private GameDefine.PositionType _position;
+
     /// <summary>選択肢のコールバック</summary>
-    private Action<PlayerSelectType, Player> _selectCallBack;
+    private Action<PlayerSelectType, Player, int> _selectCallBack;
 
     /// <summary>現在のState</summary>
     public PlayerStateBase CurrentState => _currentState;
@@ -51,14 +51,14 @@ public class Player : MonoBehaviour
     public void Setup(
         int id,
         string name,
-        int initMoneyCount,
         bool isFirst,
-        Action<PlayerSelectType, Player> SelectCallBack)
+        GameDefine.PositionType position,
+        Action<PlayerSelectType, Player, int> SelectCallBack)
     {
         _playerId = id;
         _name = name;
-        _haveMoney.Init(initMoneyCount);
         _selectCallBack = SelectCallBack;
+        _position = position;
 
         if (isFirst)
         {
@@ -121,34 +121,32 @@ public class Player : MonoBehaviour
             buttonData.Add(new UIManager.ButtonRegisterData
             {
                 ButtonText = Wording.LoadWord(select.ToString()),
-                ButtonCallback = () => Select(select)
+                ButtonCallback = GetSelectButtonCallback(select)
             });
         }
 
         UIManager.Instance.ShowSelectDialog(buttonData);
     }
 
-    private void Select(PlayerSelectType select)
+    /// <summary>
+    /// 選択ボタンのコールバック取得
+    /// </summary>
+    private Action GetSelectButtonCallback(PlayerSelectType select)
     {
-        _selectCallBack.Invoke(select, this);
+        if(select == PlayerSelectType.Bet || select == PlayerSelectType.Raise)
+        {
+            return () => UIManager.Instance.ShowCountSelectDialog(1, 1, 10, count => Select(select, count));
+        }
+
+        return () => Select(select);
+    }
+
+    private void Select(PlayerSelectType select, int selectCount = 0)
+    {
+        _selectCallBack.Invoke(select, this, selectCount);
         ChangeState(StateType.Waiting);
     }
 
-    /// <summary>
-    /// 指定した量を支払えるか
-    /// </summary>
-    public bool IsPayable(int payCount)
-    {
-        return _haveMoney.IsPayable(payCount);
-    }
-
-    /// <summary>
-    /// 掛け金を支払う
-    /// </summary>
-    public int PayMoney(int count)
-    {
-        return _haveMoney.PayMoney(count);
-    }
 
     public class StateWaiting : PlayerStateBase
     {

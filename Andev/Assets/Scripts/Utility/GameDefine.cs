@@ -22,4 +22,14 @@ public class GameDefine
         Fold
     }
 
+    /// <summary>
+    /// 位置種別
+    /// </summary>
+    public enum PositionType
+    {
+        None,
+        Left,
+        Right
+    }
+
 }

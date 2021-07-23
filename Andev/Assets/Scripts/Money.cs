@@ -1,24 +1,23 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class Money : MonoBehaviour
+public class Money
 {
-    [SerializeField]
-    private Text _countText;
-
     /// <summary>場の掛け金の数</summary>
     public int Count => _count;
     private int _count;
 
+    private Action _onChangeCount;
+
     /// <summary>
-    /// 初期化
+    /// コンストラクタ
     /// </summary>
-    public void Init(int count)
+    public Money(int initCount, Action onChangeCount)
     {
-        _count = count;
-        OnChangeCount();
+        _count = initCount;
+        _onChangeCount = onChangeCount;
     }
 
     /// <summary>
@@ -70,6 +69,6 @@ public class Money : MonoBehaviour
     /// </summary>
     private void OnChangeCount()
     {
-        _countText.text = _count.ToString();
+        _onChangeCount?.Invoke();
     }
 }

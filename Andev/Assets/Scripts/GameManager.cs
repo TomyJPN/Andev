@@ -15,10 +15,7 @@ public class GameManager : MonoBehaviour
     private Player _enemyPlayer;
 
     [SerializeField]
-    private Money _myFieldMoney;
-
-    [SerializeField]
-    private Money _enemyFieldMoney;
+    private MoneyManager _moneyManager;
 
     private GameStatus _currentGameStatus;
     private AfterPlayerActionType _afterPlayerAction;
@@ -32,8 +29,6 @@ public class GameManager : MonoBehaviour
 
     /// <summary>パスされた回数</summary>
     private int _passCount;
-
-    private int _shouldCallCount => Math.Abs(_myFieldMoney.Count - _enemyFieldMoney.Count);
 
 
     void Start()
@@ -52,17 +47,13 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private IEnumerator GameCoroutine()
     {
-        const int InitializeMoney = 10;
-
         InitGame();
-
-        Debug.Log("ゲーム開始");
         _currentGameStatus = GameStatus.InProgress;
 
         yield return new WaitForSeconds(2f);
 
-        _myPlayer.Setup(1, "悪魔", InitializeMoney, true, PlayerSelectCallBack);
-        _enemyPlayer.Setup(2, "天使", InitializeMoney, false, PlayerSelectCallBack);
+        _myPlayer.Setup(1, "悪魔", true, GameDefine.PositionType.Left, PlayerSelectCallBack);
+        _enemyPlayer.Setup(2, "天使", false, GameDefine.PositionType.Right, PlayerSelectCallBack);
 
         PayEntryCharge();
 
@@ -81,8 +72,7 @@ public class GameManager : MonoBehaviour
     private void InitGame()
     {
         _passCount = 0;
-        _myFieldMoney.Init(0);
-        _enemyFieldMoney.Init(0);
+        _moneyManager.Init(10, 0);
     }
 
     /// <summary>
@@ -93,14 +83,13 @@ public class GameManager : MonoBehaviour
         // 参加料
         const int EntryCharge = 1;
 
-        if(!_myPlayer.IsPayable(EntryCharge) || !_enemyPlayer.IsPayable(EntryCharge))
+        if(!_moneyManager.IsPayableBothPlayer(EntryCharge))
         {
             Debug.LogError("支払い不能プレイヤーがいます");
             return;
         }
 
-        _myFieldMoney.AddMoney(_myPlayer.PayMoney(EntryCharge));
-        _enemyFieldMoney.AddMoney(_enemyPlayer.PayMoney(EntryCharge));
+        _moneyManager.PayEntryCharge(EntryCharge);
     }
 
 
@@ -138,24 +127,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private Money GetPlayerFieldMoney(int playerId)
-    {
-        switch (playerId)
-        {
-            case 1:
-                return _myFieldMoney;
-            case 2:
-                return _enemyFieldMoney;
-            default:
-                Debug.LogError($"GetOpponentPlayer > いません:{playerId}");
-                return null;
-        }
-    }
-
     /// <summary>
     /// プレイヤーの選択コールバック
     /// </summary>
-    private void PlayerSelectCallBack(GameDefine.PlayerSelectType select, Player player)
+    private void PlayerSelectCallBack(GameDefine.PlayerSelectType select, Player player, int selectCount)
     {
         if (_currentGameStatus != GameStatus.WaitingPlayerSelect ||
            _currentWaitingPlayerId != player.PlayerId)
@@ -164,11 +139,21 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        _currentGameStatus = GameStatus.InProgress;
+
         if(select == GameDefine.PlayerSelectType.Pass)
         {
             _passCount++;
             UnityEngine.Debug.Log($"{_passCount}に");
         }
+
+        if(select == GameDefine.PlayerSelectType.Bet ||
+            select == GameDefine.PlayerSelectType.Raise)
+        {
+            Debug.Log($"数値:{selectCount}を選択");
+        }
+
+        PayMoney(select, player, selectCount);
 
         StartCoroutine(ChangeTurn(select, player));
     }
@@ -181,8 +166,6 @@ public class GameManager : MonoBehaviour
         Player opponentPlayer = GetOpponentPlayer(player.PlayerId);
         Player.StateType nextState = GameStateUtility.GetOpponentPlayerNextState(player.CurrentStateEnum, select, _passCount);
 
-        PayMoney(select, player);
-
         yield return new WaitForSeconds(1f);
 
         // 相手の設定
@@ -193,30 +176,30 @@ public class GameManager : MonoBehaviour
         if (_afterPlayerAction == AfterPlayerActionType.PlayerSelect)
         {
             _currentWaitingPlayerId = opponentPlayer.PlayerId;
+            _currentGameStatus = GameStatus.WaitingPlayerSelect;
         }
     }
 
     /// <summary>
     /// 支払い
     /// </summary>
-    private void PayMoney(GameDefine.PlayerSelectType select, Player player)
+    private void PayMoney(GameDefine.PlayerSelectType select, Player player, int selectCount)
     {
+        int payCount = 0;
+
         switch (select)
         {
             case GameDefine.PlayerSelectType.Bet:
-                const int BetMoney = 2; // 仮
-                Debug.LogWarning("仮でベットを2としています");
-                GetPlayerFieldMoney(player.PlayerId).AddMoney(player.PayMoney(BetMoney));
+            case GameDefine.PlayerSelectType.Raise:
+                payCount = selectCount;
+
                 break;
             case GameDefine.PlayerSelectType.Call:
-                GetPlayerFieldMoney(player.PlayerId).AddMoney(player.PayMoney(_shouldCallCount));
-                break;
-            case GameDefine.PlayerSelectType.Raise:
-                const int RaiseMoney = 1; // 仮
-                Debug.LogWarning("仮でレイズを+1としています");
-                GetPlayerFieldMoney(player.PlayerId).AddMoney(player.PayMoney(_shouldCallCount + RaiseMoney));
+                payCount = _moneyManager.ShouldCallCount;
                 break;
         }
+
+        _moneyManager.PayPlayerMoneyToField(player.Position, payCount);
     }
-    
+
 }
