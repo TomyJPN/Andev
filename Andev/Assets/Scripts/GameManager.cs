@@ -50,15 +50,19 @@ public class GameManager : MonoBehaviour
         InitGame();
         _currentGameStatus = GameStatus.InProgress;
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
 
-        _myPlayer.Setup(1, "悪魔", true, GameDefine.PositionType.Left, PlayerSelectCallBack);
-        _enemyPlayer.Setup(2, "天使", false, GameDefine.PositionType.Right, PlayerSelectCallBack);
+        _myPlayer.Setup(1, "悪魔", GameDefine.PositionType.Left, PlayerSelectCallBack, _moneyManager);
+        _enemyPlayer.Setup(2, "天使", GameDefine.PositionType.Right, PlayerSelectCallBack, _moneyManager);
 
         PayEntryCharge();
 
-        // とりあえず先攻
-        _currentWaitingPlayerId = 1;
+        yield return new WaitForSeconds(1f);
+
+        // とりあえず悪魔を先攻
+        const int FirstPlayerId = 1;
+        GetPlayer(FirstPlayerId).ChangeState(Player.StateType.Select1);
+        _currentWaitingPlayerId = FirstPlayerId;
 
         _afterPlayerAction = AfterPlayerActionType.PlayerSelect;
 
@@ -145,12 +149,6 @@ public class GameManager : MonoBehaviour
         {
             _passCount++;
             UnityEngine.Debug.Log($"{_passCount}に");
-        }
-
-        if(select == GameDefine.PlayerSelectType.Bet ||
-            select == GameDefine.PlayerSelectType.Raise)
-        {
-            Debug.Log($"数値:{selectCount}を選択");
         }
 
         PayMoney(select, player, selectCount);

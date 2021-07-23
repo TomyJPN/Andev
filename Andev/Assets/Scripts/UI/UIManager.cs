@@ -47,11 +47,10 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
     /// <summary>
     /// 数値選択ダイアログの表示
     /// </summary>
-    /// <param name="initCount">初期値</param>
     /// <param name="min">選択できる最小値</param>
     /// <param name="max">選択できる最大値</param>
     /// <param name="onDecide">決定した時のコールバック（int:選択数値）</param>
-    public void ShowCountSelectDialog(int initCount, int min, int max, Action<int> onDecide)
+    public void ShowCountSelectDialog(int min, int max, Action<int> onDecide)
     {
         GameObject prefab = LoadPrefab("CountSelectDialog");
 
@@ -62,7 +61,7 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
         }
 
         GameObject go = Instantiate(prefab);
-        go.GetComponent<CountSelectDialog>().Setup(initCount, min, max, onDecide);
+        go.GetComponent<CountSelectDialog>().Setup(min ,min, max, onDecide);
         SetParentCanvas(go);
     }
 

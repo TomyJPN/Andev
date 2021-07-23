@@ -3,6 +3,7 @@ using System;
 
 using PlayerSelectType = GameDefine.PlayerSelectType;
 using System.Collections.Generic;
+using System.Linq;
 
 public class Player : MonoBehaviour
 {
@@ -45,29 +46,25 @@ public class Player : MonoBehaviour
     /// <summary>現在のState名</summary>
     public string CurrentStateName => _currentStateEnum.ToString();
 
+    private MoneyManager _moneyManager;
+
     /// <summary>
     /// セットアップ
     /// </summary>
     public void Setup(
         int id,
         string name,
-        bool isFirst,
         GameDefine.PositionType position,
-        Action<PlayerSelectType, Player, int> SelectCallBack)
+        Action<PlayerSelectType, Player, int> SelectCallBack,
+        MoneyManager moneyManager)
     {
         _playerId = id;
         _name = name;
         _selectCallBack = SelectCallBack;
         _position = position;
+        _moneyManager = moneyManager;
 
-        if (isFirst)
-        {
-            ChangeState(StateType.Select1);
-        }
-        else
-        {
-            ChangeState(StateType.Waiting);
-        }
+        ChangeState(StateType.Waiting);
     }
 
     void Update()
@@ -116,7 +113,7 @@ public class Player : MonoBehaviour
     {
         List<UIManager.ButtonRegisterData> buttonData = new List<UIManager.ButtonRegisterData>();
 
-        foreach(var select in selectList)
+        foreach(PlayerSelectType select in selectList.OrderBy(_=>_))
         {
             buttonData.Add(new UIManager.ButtonRegisterData
             {
@@ -133,9 +130,18 @@ public class Player : MonoBehaviour
     /// </summary>
     private Action GetSelectButtonCallback(PlayerSelectType select)
     {
-        if(select == PlayerSelectType.Bet || select == PlayerSelectType.Raise)
+        if(select == PlayerSelectType.Bet)
         {
-            return () => UIManager.Instance.ShowCountSelectDialog(1, 1, 10, count => Select(select, count));
+            int max = _moneyManager.GetMaxBetCount(_position);
+            return () => UIManager.Instance.ShowCountSelectDialog(1, max, count => Select(select, count));
+        }
+
+        if(select == PlayerSelectType.Raise)
+        {
+            int min = _moneyManager.GetMinRaiseCount(_position);
+            int max = _moneyManager.GetMaxRaiseCount(_position);
+
+            return () => UIManager.Instance.ShowCountSelectDialog(min, max, count => Select(select, count));
         }
 
         return () => Select(select);
@@ -161,13 +167,16 @@ public class Player : MonoBehaviour
         public override void OnEnter(Player owner, PlayerStateBase prevState)
         {
             base.OnEnter(owner, prevState);
-            Debug.Log(owner.PlayerName + "選択: ベットB or パスP", Debug.Green);
 
             List<PlayerSelectType> selectList = new List<PlayerSelectType>
             {
-                PlayerSelectType.Bet,
                 PlayerSelectType.Pass
             };
+
+            if (owner._moneyManager.IsPossibleBet(owner._position))
+            {
+                selectList.Add(PlayerSelectType.Bet);
+            }
             owner.ShowSelectDialog(selectList);
         }
     }
@@ -180,14 +189,18 @@ public class Player : MonoBehaviour
         public override void OnEnter(Player owner, PlayerStateBase prevState)
         {
             base.OnEnter(owner, prevState);
-            Debug.Log(owner.PlayerName + "選択: コールC or フォールドF or レイズR", Debug.Green);
 
             List<PlayerSelectType> selectList = new List<PlayerSelectType>
             {
                 PlayerSelectType.Call,
                 PlayerSelectType.Fold,
-                PlayerSelectType.Raise
             };
+
+            if (owner._moneyManager.IsPossibleRaise(owner._position))
+            {
+                selectList.Add(PlayerSelectType.Raise);
+            }
+
             owner.ShowSelectDialog(selectList);
         }
     }
@@ -200,7 +213,6 @@ public class Player : MonoBehaviour
         public override void OnEnter(Player owner, PlayerStateBase prevState)
         {
             base.OnEnter(owner, prevState);
-            Debug.Log(owner.PlayerName + "選択: コールC or フォールドF", Debug.Green);
 
             List<PlayerSelectType> selectList = new List<PlayerSelectType>
             {

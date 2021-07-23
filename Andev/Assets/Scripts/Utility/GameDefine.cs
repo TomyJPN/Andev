@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameDefine
+public static class GameDefine
 {
     /// <summary>
     /// 選択肢タイプ
@@ -32,4 +32,8 @@ public class GameDefine
         Right
     }
 
+    public static PositionType GetOpponentPosition(PositionType position)
+    {
+        return position == PositionType.Left ? PositionType.Right : PositionType.Left;
+    }
 }

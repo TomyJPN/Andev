@@ -25,7 +25,7 @@ public class Money
     /// </summary>
     public bool IsPayable(int payCount)
     {
-        return _count > payCount;
+        return _count >= payCount;
     }
 
     /// <summary>
