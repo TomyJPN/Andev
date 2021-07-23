@@ -31,7 +31,7 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
     /// </summary>
     public void ShowSelectDialog(List<ButtonRegisterData> buttonRegisterDataList)
     {
-        GameObject prefab = (GameObject)Resources.Load("SelectDialog");
+        GameObject prefab = LoadPrefab("SelectDialog");
 
         if(prefab == null)
         {
@@ -41,6 +41,38 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 
         GameObject go = Instantiate(prefab);
         go.GetComponent<SelectDialog>().Setup(buttonRegisterDataList);
-        go.transform.SetParent(_canvasObj.transform, false);
+        SetParentCanvas(go);
+    }
+
+    /// <summary>
+    /// 数値選択ダイアログの表示
+    /// </summary>
+    /// <param name="initCount">初期値</param>
+    /// <param name="min">選択できる最小値</param>
+    /// <param name="max">選択できる最大値</param>
+    /// <param name="onDecide">決定した時のコールバック（int:選択数値）</param>
+    public void ShowCountSelectDialog(int initCount, int min, int max, Action<int> onDecide)
+    {
+        GameObject prefab = LoadPrefab("CountSelectDialog");
+
+        if (prefab == null)
+        {
+            Debug.LogError("ShowCountSelectDialog > ロード失敗");
+            return;
+        }
+
+        GameObject go = Instantiate(prefab);
+        go.GetComponent<CountSelectDialog>().Setup(initCount, min, max, onDecide);
+        SetParentCanvas(go);
+    }
+
+    private GameObject LoadPrefab(string prefabName)
+    {
+        return (GameObject)Resources.Load(prefabName);
+    }
+
+    private void SetParentCanvas(GameObject gameObject)
+    {
+        gameObject.transform.SetParent(_canvasObj.transform, false);
     }
 }
