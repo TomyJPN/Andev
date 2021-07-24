@@ -11,6 +11,8 @@ public class Wording
         { "pass", "パスする" },
         { "raise", "ふやす" },
         { "fold", "おりる" },
+        { "message_wining_player", "{0}のかち" },
+        { "message_fold_player", "{0}がおりた" },
         { "", "" },
     };
 

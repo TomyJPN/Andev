@@ -28,7 +28,9 @@ public static class GameStateUtility
         /// <summary>「勝負！」演出</summary>
         BattleEffect,
         /// <summary>勝敗ジャッジ</summary>
-        Judgement
+        Judgement,
+        /// <summary>降りてのジャッジ</summary>
+        FoldJudgement,
     }
 
     /// <summary>
@@ -90,7 +92,7 @@ public static class GameStateUtility
                 return AfterPlayerActionType.BattleEffect;
 
             case GameDefine.PlayerSelectType.Fold:
-                return AfterPlayerActionType.Judgement;
+                return AfterPlayerActionType.FoldJudgement;
 
             case GameDefine.PlayerSelectType.Raise:
                 return AfterPlayerActionType.PlayerSelect;

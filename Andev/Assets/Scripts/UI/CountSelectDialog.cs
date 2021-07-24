@@ -57,8 +57,8 @@ public class CountSelectDialog : MonoBehaviour
 
     private void OnChangeCount()
     {
-        _upButton.interactable = _currentCount != _max;
-        _downButton.interactable = _currentCount != _min;
+        _upButton.interactable = _currentCount < _max;
+        _downButton.interactable = _currentCount > _min;
 
         _countText.text = _currentCount.ToString();
     }

@@ -47,6 +47,14 @@ public class Money
     }
 
     /// <summary>
+    /// 全て支払う
+    /// </summary>
+    public int PayAll()
+    {
+        return PayMoney(_count);
+    }
+
+    /// <summary>
     /// 掛け金を追加
     /// </summary>
     public void AddMoney(int addCount)

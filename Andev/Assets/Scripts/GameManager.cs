@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 using GameStatus = GameStateUtility.GameStatus;
 using AfterPlayerActionType = GameStateUtility.AfterPlayerActionType;
@@ -16,6 +17,14 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private MoneyManager _moneyManager;
+
+    // TODO 別クラスに移す
+    [SerializeField]
+    private Text _LeftCardText;
+
+    // TODO 別クラスに移す
+    [SerializeField]
+    private Text _RightCardText;
 
     private GameStatus _currentGameStatus;
     private AfterPlayerActionType _afterPlayerAction;
@@ -55,9 +64,40 @@ public class GameManager : MonoBehaviour
         _myPlayer.Setup(1, "悪魔", GameDefine.PositionType.Left, PlayerSelectCallBack, _moneyManager);
         _enemyPlayer.Setup(2, "天使", GameDefine.PositionType.Right, PlayerSelectCallBack, _moneyManager);
 
+        while (!_moneyManager.AnyEmptyMoneyPlayer())
+        {
+            yield return RoundLoop();
+        }
+
+        UIManager.Instance.ShowGameMessage("終了!!!!!!!", 3f);
+
+        yield return new WaitForSeconds(3f);
+
+        UIManager.Instance.ShowSelectDialog(new List<UIManager.ButtonRegisterData> {
+            new UIManager.ButtonRegisterData
+            {
+                ButtonText = "再プレイ",
+                ButtonCallback = Restart
+            }
+        });
+
+    }
+
+    /// <summary>
+    /// 1ラウンドのループ
+    /// </summary>
+    private IEnumerator RoundLoop()
+    {
+        SetupRound();
+
         PayEntryCharge();
 
-        yield return new WaitForSeconds(1f);
+        UIManager.Instance.ShowGameMessage("カードを引く", 0.5f);
+        yield return new WaitForSeconds(0.5f);
+
+        DrawCard();
+
+        yield return new WaitForSeconds(0.5f);
 
         // とりあえず悪魔を先攻
         const int FirstPlayerId = 1;
@@ -69,14 +109,26 @@ public class GameManager : MonoBehaviour
         // 互いの選択が続く
         _currentGameStatus = GameStatus.WaitingPlayerSelect;
         yield return new WaitUntil(() => _afterPlayerAction != AfterPlayerActionType.PlayerSelect);
-    
-        Debug.Log($"{_afterPlayerAction}演出を行って判定します！", Debug.Green);
+
+        if(_afterPlayerAction == AfterPlayerActionType.BattleEffect)
+        {
+            UIManager.Instance.ShowGameMessage("勝負！！", 1f);
+            yield return new WaitForSeconds(1f);
+        }
+
+        Judgement();
+
+        yield return new WaitForSeconds(2f);
     }
 
     private void InitGame()
     {
-        _passCount = 0;
         _moneyManager.Init(10, 0);
+    }
+
+    private void SetupRound()
+    {
+        _passCount = 0;
     }
 
     /// <summary>
@@ -94,6 +146,41 @@ public class GameManager : MonoBehaviour
         }
 
         _moneyManager.PayEntryCharge(EntryCharge);
+    }
+
+    private void DrawCard()
+    {
+        List<Card> drawCard = CardUtility.DrawCard(2);
+        _myPlayer.SetCard(drawCard[0]);
+        _enemyPlayer.SetCard(drawCard[1]);
+
+        _LeftCardText.text = _myPlayer.HaveCard.Number.ToString();
+        _RightCardText.text = _enemyPlayer.HaveCard.Number.ToString();
+    }
+
+    private void Judgement()
+    {
+        string message;
+
+        if (_afterPlayerAction == AfterPlayerActionType.FoldJudgement)
+        {
+            Player foldPlayer = GetPlayer(_currentWaitingPlayerId);
+            _moneyManager.ExecuteWiningPay(GetOpponentPlayer(foldPlayer.PlayerId).Position);
+
+            message = string.Format(Wording.LoadWord("message_fold_player"), foldPlayer.PlayerName);
+        }
+        else
+        {
+            Player winner = CardUtility.IsStrong(_myPlayer.HaveCard, _enemyPlayer.HaveCard)
+                ? _myPlayer
+    :           _enemyPlayer;
+
+            _moneyManager.ExecuteWiningPay(winner.Position);
+
+            message = string.Format(Wording.LoadWord("message_wining_player"), winner.PlayerName);
+        }
+
+        UIManager.Instance.ShowGameMessage(message, 1.5f);
     }
 
 
@@ -148,7 +235,6 @@ public class GameManager : MonoBehaviour
         if(select == GameDefine.PlayerSelectType.Pass)
         {
             _passCount++;
-            UnityEngine.Debug.Log($"{_passCount}に");
         }
 
         PayMoney(select, player, selectCount);
@@ -164,7 +250,7 @@ public class GameManager : MonoBehaviour
         Player opponentPlayer = GetOpponentPlayer(player.PlayerId);
         Player.StateType nextState = GameStateUtility.GetOpponentPlayerNextState(player.CurrentStateEnum, select, _passCount);
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
         // 相手の設定
         opponentPlayer.ChangeState(nextState);

@@ -48,6 +48,10 @@ public class Player : MonoBehaviour
 
     private MoneyManager _moneyManager;
 
+    /// <summary>所持カード</summary>
+    public Card HaveCard => _haveCard;
+    private Card _haveCard;
+
     /// <summary>
     /// セットアップ
     /// </summary>
@@ -65,6 +69,11 @@ public class Player : MonoBehaviour
         _moneyManager = moneyManager;
 
         ChangeState(StateType.Waiting);
+    }
+
+    public void SetCard(Card card)
+    {
+        _haveCard = card;
     }
 
     void Update()

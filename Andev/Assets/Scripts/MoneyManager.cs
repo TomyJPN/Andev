@@ -148,7 +148,7 @@ public class MoneyManager : MonoBehaviour
     /// </summary>
     public bool IsPossibleBet(GameDefine.PositionType position)
     {
-        return GetOpponentPlayerMoney(position).Count != 0;
+        return !AnyEmptyMoneyPlayer();
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public class MoneyManager : MonoBehaviour
     public bool IsPossibleRaise(GameDefine.PositionType position)
     {
         // 自分が出せるかチェック
-        if (!GetMoney(position).IsPayable(_differenceFieldCount))
+        if (!GetMoney(position).IsPayable(_differenceFieldCount + 1))
         {
             return false;
         }
@@ -194,7 +194,11 @@ public class MoneyManager : MonoBehaviour
         }
 
         int opponentSum = GetOpponentPlayerMoney(position).Count + GetOpponentFieldMoney(position).Count;
-        return opponentSum - GetFieldMoney(position).Count;
+        int result = opponentSum - GetFieldMoney(position).Count;
+        int myCount = GetMoney(position).Count;
+
+        // 自分が出せる最大が前提（myCountの比較）
+        return result < myCount ? result : myCount;
     }
 
     /// <summary>
@@ -209,6 +213,26 @@ public class MoneyManager : MonoBehaviour
         }
 
         return _differenceFieldCount + 1;
+    }
+
+    /// <summary>
+    /// 勝利時の支払いの実行
+    /// </summary>
+    public void ExecuteWiningPay(GameDefine.PositionType winnerPos)
+    {
+        int allFieldCount = 0;
+        allFieldCount += FieldLeftMoney.PayAll();
+        allFieldCount += FieldRightMoney.PayAll();
+
+        GetMoney(winnerPos).AddMoney(allFieldCount);
+    }
+
+    /// <summary>
+    /// 残金のないプレイヤーがいるか
+    /// </summary>
+    public bool AnyEmptyMoneyPlayer()
+    {
+        return LeftMoney.Count == 0 || RightMoney.Count == 0;
     }
 
     private void UpdateUI()

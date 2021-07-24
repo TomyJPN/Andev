@@ -65,6 +65,44 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
         SetParentCanvas(go);
     }
 
+    /// <summary>
+    /// ゲームメッセージの表示
+    /// </summary>
+    public void ShowGameMessage(string message, float viewTime = 2f)
+    {
+        GameObject prefab = LoadPrefab("GameMessage");
+
+        if(prefab == null)
+        {
+            Debug.LogError("ShowGameMessage > ロード失敗");
+            return;
+        }
+
+        GameObject go = Instantiate(prefab).gameObject;
+        go.GetComponent<GameMessage>().Setup(message, viewTime);
+        SetParentCanvas(go);
+
+        Debug.Log(message, Debug.Green);
+
+        // TODO メッセージをキュー管理にしたい
+        /*
+        if (_messageQueue.Count == 0)
+        {
+            ShowGameMessage(gameMessage);
+        }
+
+        _messageQueue.Enqueue(gameMessage);
+        */
+    }
+
+    /*
+    private void ShowGameMessage(GameMessage gameMessage)
+    {
+        GameObject go = Instantiate(gameMessage).gameObject;
+        go.GetComponent<GameMessage>().Setup(message, viewTime);
+        SetParentCanvas(go);
+    }*/
+
     private GameObject LoadPrefab(string prefabName)
     {
         return (GameObject)Resources.Load(prefabName);
