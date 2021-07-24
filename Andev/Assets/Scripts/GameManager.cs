@@ -20,11 +20,11 @@ public class GameManager : MonoBehaviour
 
     // TODO 別クラスに移す
     [SerializeField]
-    private Text _LeftCardText;
+    private CardViewer _LeftCard;
 
     // TODO 別クラスに移す
     [SerializeField]
-    private Text _RightCardText;
+    private CardViewer _RightCard;
 
     private GameStatus _currentGameStatus;
     private AfterPlayerActionType _afterPlayerAction;
@@ -129,6 +129,8 @@ public class GameManager : MonoBehaviour
     private void SetupRound()
     {
         _passCount = 0;
+        _LeftCard.Clear();
+        _RightCard.Clear();
     }
 
     /// <summary>
@@ -154,8 +156,8 @@ public class GameManager : MonoBehaviour
         _myPlayer.SetCard(drawCard[0]);
         _enemyPlayer.SetCard(drawCard[1]);
 
-        _LeftCardText.text = _myPlayer.HaveCard.Number.ToString();
-        _RightCardText.text = _enemyPlayer.HaveCard.Number.ToString();
+        _LeftCard.SetCard(_myPlayer.HaveCard);
+        _RightCard.SetCard(_enemyPlayer.HaveCard);
     }
 
     private void Judgement()
